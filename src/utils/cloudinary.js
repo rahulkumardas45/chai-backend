@@ -18,8 +18,11 @@ import  fs from 'fs';
         const response= await cloudinary.uploader.upload(localFilePath, {
             resource_type: 'auto', // Automatically detect the resource type
         });
-        console.log('File uploaded successfully:', response.url);
+        fs.unlinkSync(localFilePath);
+        // console.log('File uploaded successfully:', response.url);
+        // console.log(response);
         return response;
+
     } catch (error) {
         fs.unlinkSync(localFilePath); // Delete the local file if upload fails
         return null;
