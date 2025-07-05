@@ -167,8 +167,8 @@ const logoutUser = asyncHandler( async(req ,res)=>{
   User.findByIdAndUpdate(
        req.user._id,
        {
-        $set: {
-          refreshToken: undefined
+        $unset: {
+          refreshToken: 1
         }
        },
        {
@@ -269,7 +269,7 @@ const changeCurrentPassword = asyncHandler(async(req, res)=>{
 const getCurrentUser = asyncHandler(async(req, res)=>{
   return res
   .status(200)
-  .json(200, req.user, "current user fetch successfully")
+  .json(  new ApiResponse(200, req.user, "current user fetch successfully"))
 
 })
 
@@ -347,37 +347,48 @@ const updateUserAvatar = asyncHandler (async(req, res)=>
 
 })
 
-const updateUserCoverImage = asyncHandler(async(req, res)=>{
-    const coverImageLocalpath= req.file?.path
-    
-    if(!coverImageLocalpath){
-      throw new ApiError(400, "Cover image file is missing")
+const updateUserCoverImage = asyncHandler (async(req, res)=>
+  {
+  const coverImageLocalPath = req.file?.path
+
+  if(!coverImageLocalPath){
+    throw new ApiError(400, "coverImage file is missing")
+  }
+   
+  // //TODO DELETE OLD IMAGE --ASSINGMENT
+  // const avatartoDelete = await User.findByIdAndUpdate(
+  //   req.user?._id,
+  //   {
+  //     avatartoDelete:user.avatar
+  //   }
+  //   ).select("-password")
+
+
+
+
+ const coverImage = await upoloadOnCloudinary(coverImageLocalPath)
+
+  if(!coverImage.url){
+     throw new ApiError(400, "Error while uploading on coverImage")
+  }
+
+ const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+       $set:{
+        coverImage: coverImage.url
+       }
+    },
+    {
+ new: true
     }
+  ).select("-password")
 
-    const coverImage = await upoloadOnCloudinary(coverImageLocalpath)
-
-    if(!coverImage.url){
-      throw new ApiError(400, "Error while uploading on cover image")
-    }
-
-     const user = User.findByIdAndUpdate(
-      req.user?._id,
-      { 
-        $set:{
-          coverImage: coverImage.url
-        }
-      },
-      {
-        new: true
-      }
-    ).select("-password")
-
-    return res
+  return res
     .status(200)
     .json(
       new ApiResponse(200, user, "coverImage updated successfully")
     )
-
 
 })
 
@@ -385,6 +396,11 @@ const getUserChannelProfile =asyncHandler(async(req, res)=>{
   // get username of the profile from url using params
 
   const {username}= req.params
+
+
+
+// console.log(username)
+
 
   if(!username){
     throw new ApiError(400, "username is missing")
@@ -462,6 +478,8 @@ const getUserChannelProfile =asyncHandler(async(req, res)=>{
     }
    ])
 
+  //  console.log(channel)
+
    if(!channel?.length){
     throw new ApiError( 404, "Channel does not exist ")
 
@@ -470,7 +488,7 @@ const getUserChannelProfile =asyncHandler(async(req, res)=>{
    return res
    .status(200)
    .json(
-      new ApiResponse( 200, "Channel fetch successfully ", channel[0])
+      new ApiResponse( 200,channel[0] ,"Channel fetch successfully ")
    )
 
 })
@@ -516,7 +534,7 @@ const user = await User.aggregate([
               ]
             }
           },
-          
+
           {
              $addFields: {
                 owner: {
@@ -543,9 +561,6 @@ return res
 )
 
 })
-
-
-
 
 
 

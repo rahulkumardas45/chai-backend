@@ -1,5 +1,7 @@
 
 import mongoose ,{Schema} from "mongoose";
+
+//use of the aggregate paginate is all video are not possible to show in one page so we load in nother page or scroll
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 
